@@ -1,7 +1,0 @@
-Windows Registry Editor Version 5.00
-
-[HKEY_CLASSES_ROOT\Directory\shell\Open with Spyder]
-@="Open with Spyder"
-
-[HKEY_CLASSES_ROOT\Directory\shell\Open with Spyder\command]
-@="\"C:\\Users\\solam\\anaconda3\\Scripts\\spyder.exe\" \"%1\""
