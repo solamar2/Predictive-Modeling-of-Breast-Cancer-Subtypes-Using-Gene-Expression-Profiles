@@ -20,6 +20,7 @@ class NNTrainer:
     def save_model(self, path):
         import torch
         torch.save(self.model.state_dict(), path)
+<<<<<<< HEAD
         
 def TrainModel(model,train_loader,val_loader):
     learningRate=0.0005
@@ -75,3 +76,5 @@ def TrainModel(model,train_loader,val_loader):
             break
   
     return trainlosses,trainacc,vallosses,valacc
+=======
+>>>>>>> 58782fb9c1e65a678d3c1f4d6d6498eefe511b78
