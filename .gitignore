@@ -42,3 +42,6 @@ data/
 *.log
 token.txt
 *.docx
+*.tmp
+.spyproject/config/
+open_with_spyder.reg
