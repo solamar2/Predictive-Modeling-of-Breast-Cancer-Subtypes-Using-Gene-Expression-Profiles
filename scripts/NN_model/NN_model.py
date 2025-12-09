@@ -5,10 +5,10 @@ class createANNmodel(nn.Module):
     def __init__(self,numofgenes):
         super().__init__()
         # Define layers
-        self.layer1 = nn.Linear(numofgenes, 64)
-        self.layer2 = nn.Linear(64,32)
-        self.layer3 = nn.Linear(32, 16)
-        self.layer4 = nn.Linear(16, numoflabels)
+        self.layer1 = nn.Linear(numofgenes, 256)
+        self.layer2 = nn.Linear(256,128)
+        self.layer3 = nn.Linear(128, 32)
+        self.layer4 = nn.Linear(32, numoflabels)
         self.relu = nn.ReLU()
         self.dropout = nn.Dropout(dropoutparm)
 

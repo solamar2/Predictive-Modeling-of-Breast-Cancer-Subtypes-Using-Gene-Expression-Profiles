@@ -63,11 +63,11 @@ class NNTrainer:
             
             valacc.append(self.compute_accuracy(vallogits, val_loader.dataset.tensors[1]))
             vallosses.append(lossfun(vallogits, val_loader.dataset.tensors[1]).item())
-            
+            """
             if abs(vallosses[epochi] - trainlosses[epochi]) > early_stop_threshold:
                 print(f"Stopping early at epoch {epochi} – validation loss too high.")
                 break
-      
+      """
         return trainlosses,trainacc,vallosses,valacc
     
     

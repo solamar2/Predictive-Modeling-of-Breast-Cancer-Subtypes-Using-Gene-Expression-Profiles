@@ -3,8 +3,9 @@ from scripts.Data_manager.Data_Preprocessing import Preprocessing
 from scripts.Data_manager.Data_Split import DataSplit
 from scripts.NN_model.NN_model import createANNmodel
 from scripts.NN_model.NNTrainer import NNTrainer
-import torch
-import torch.nn as nn
+from scripts.NN_model.Evaluate_Model import EvaluateModel
+
+import numpy as np
 
 class Pipline:
     def __init__(self):
@@ -30,6 +31,14 @@ class Pipline:
         print(f"Processed data shape: {GenesData_proc.shape}")
         print(f"Processed labels shape: {labels_proc.shape}")
         print("----------------------------------")
+        
+        
+        # Count number of samples per class
+        unique_classes, counts = np.unique(labels_proc, return_counts=True)
+        
+        for cls, count in zip(unique_classes, counts):
+            print(f"Class {cls}: {count} samples")
+            
         
         # Split the data
         print("=== Stage 3: Data Splitting ===")
@@ -62,20 +71,13 @@ class Pipline:
         Model_NNtrain.Plot_acc_loss(trainlosses,trainacc,vallosses,valacc)
         # Test evaluation
         print("=== Stage 6: Test Evaluation ===")
-        self.model.eval()
-        with torch.no_grad():
-            test_logits = self.model(test_loader.dataset.tensors[0])
-            test_labels = test_loader.dataset.tensors[1]
         
-            test_preds = torch.argmax(test_logits, dim=1)
-            test_acc = (test_preds == test_labels).float().mean().item()
-        
-            lossfun = nn.CrossEntropyLoss()
-            test_loss = lossfun(test_logits, test_labels).item()
-        
-        print(f"Test accuracy: {test_acc:.4f}")
-        print(f"Test loss: {test_loss:.4f}")
-        print("----------------------------------")
+        evaluator=EvaluateModel( self.model,test_loader)
+        evaluator.plot_confusion_matrix()
+        evaluator.plot_accuracy_per_class()
+        evaluator.plot_loss_per_class()
+
+
 
 if __name__ == "__main__":
     pipeline = Pipline()
