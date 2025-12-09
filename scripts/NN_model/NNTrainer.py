@@ -1,80 +1,100 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sun Dec  7 15:49:31 2025
-
-@author: solam
-"""
+import torch
+import torch.nn as nn
+import numpy as np
+from scripts.Constants import alpha, weightdecayparm, numepochs, early_stop_threshold
+import matplotlib.pyplot as plt
 
 class NNTrainer:
-    def __init__(self, model, criterion, optimizer):
+    def __init__(self, model):
         self.model = model
-        self.criterion = criterion
-        self.optimizer = optimizer
-
-    def train(self, X_train, y_train, epochs=10, batch_size=32):
-        pass  # כאן תוסיף את לולאת האימון
-
-    def evaluate(self, X_test, y_test):
-        pass  # כאן תחשב accuracy או metrics אחרים
-
-    def save_model(self, path):
-        import torch
-        torch.save(self.model.state_dict(), path)
-<<<<<<< HEAD
-        
-def TrainModel(model,train_loader,val_loader):
-    learningRate=0.0005
-    numepochs=1000
-    early_stop_threshold=0.1
-    # loss function
-    lossfun = nn.BCEWithLogitsLoss()
-    # optimizer
-    optimizer = torch.optim.Adam(model.parameters(),lr=learningRate,weight_decay=1e-3)
     
-    # intilaize:
-    trainlosses = []
-    trainacc    = []
-    vallosses   = []
-    valacc      = []
-    # loop over epochs
-    for epochi in range(numepochs):
-        model.train()
-        batchLoss = []
+    def compute_accuracy(self,logits, labels):
+        """
+        Compute multiclass accuracy
+        logits: [N, num_classes] (raw outputs from model)
+        labels: [N] (integers 0..num_classes-1)
+        """
+        preds = torch.argmax(logits, dim=1)
+        correct = (preds == labels).sum().item()
+        return correct / labels.size(0)
         
-        # loop over batch
-        for X,y in train_loader:
-            # forward pass and loss
-            yHat = model(X)
-            loss = lossfun(yHat,y)
-            # backprop
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-            # loss from this batch
-            batchLoss.append(loss.item())    
-    
-        # now that we've trained through the batches, get their average training accuracy - per epoch:
-        # and get average losses across the batches
-        trainlosses.append(np.mean(batchLoss))
+    def TrainModel(self,train_loader,val_loader):
+        model=self.model
+        # loss function
+        lossfun = nn.CrossEntropyLoss()
+        # optimizer
+        optimizer = torch.optim.Adam(model.parameters(),lr=alpha,weight_decay=weightdecayparm)
         
-        # compute the predictions and report train accuracy per epoch
-        with torch.no_grad(): # deactivates autograd
-            trainlogits = model(train_loader.dataset.tensors[0])
-        trainacc.append(binary_accuracy(trainlogits, train_loader.dataset.tensors[1]))
+        # intilaize:
+        trainlosses = []
+        trainacc    = []
+        vallosses   = []
+        valacc      = []
+        
+        # --- training loop ---
+        for epochi in range(numepochs):
+            model.train()
+            batchLoss = []
+            
+            # loop over batch
+            for X,y in train_loader:
+                # forward pass and loss
+                yHat = model(X)
+                loss = lossfun(yHat,y)
+                # backprop
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
+                # loss from this batch
+                batchLoss.append(loss.item())    
+        
+            # now that we've trained through the batches, get their average training loss - per epoch:
+            trainlosses.append(np.mean(batchLoss))
+            # compute training accuracy
+            with torch.no_grad(): # deactivates autograd
+                trainlogits = model(train_loader.dataset.tensors[0])
+            trainacc.append(self.compute_accuracy(trainlogits, train_loader.dataset.tensors[1]))
 
-           
-        model.eval()
-        # compute validation accuracy & loss
-        with torch.no_grad(): # deactivates autograd
-            vallogits = model(val_loader.dataset.tensors[0])
+    
+            model.eval()
+            # compute validation accuracy & loss
+            with torch.no_grad(): # deactivates autograd
+                vallogits = model(val_loader.dataset.tensors[0])
+            
+            valacc.append(self.compute_accuracy(vallogits, val_loader.dataset.tensors[1]))
+            vallosses.append(lossfun(vallogits, val_loader.dataset.tensors[1]).item())
+            
+            if abs(vallosses[epochi] - trainlosses[epochi]) > early_stop_threshold:
+                print(f"Stopping early at epoch {epochi} – validation loss too high.")
+                break
+      
+        return trainlosses,trainacc,vallosses,valacc
+    
+    
+    def Plot_acc_loss(self, trainlosses,trainacc,vallosses,valacc):
+        # plot acc and losses:
+        epochs = np.arange(len(trainlosses))
+
+        plt.figure(figsize=(8,5))
+        plt.plot(epochs, trainlosses, label="Train Loss")
+        plt.plot(epochs, vallosses,   label="Val Loss")
+        plt.xlabel("Epoch")
+        plt.ylabel("Loss")
+        plt.title("Training & Validation Loss (Scatter)")
+        plt.legend()
+        plt.grid(True)
+        plt.show()
+
+        plt.figure(figsize=(8,5))
+        plt.plot(epochs, trainacc, label="Train Accuracy")
+        plt.plot(epochs, valacc, label="Val Accuracy")
+        plt.xlabel("Epoch")
+        plt.ylabel("Accuracy")
+        plt.title("Training & Validation Loss (Scatter)")
+        plt.legend()
+        plt.grid(True)
+        plt.show()
+
         
-        valacc.append(binary_accuracy(vallogits, val_loader.dataset.tensors[1]))
-        vallosses.append(lossfun(vallogits, val_loader.dataset.tensors[1]).item())
         
-        if abs(vallosses[epochi] - trainlosses[epochi]) > early_stop_threshold:
-            print(f"Stopping early at epoch {epochi} – validation loss too high.")
-            break
-  
-    return trainlosses,trainacc,vallosses,valacc
-=======
->>>>>>> 58782fb9c1e65a678d3c1f4d6d6498eefe511b78
+

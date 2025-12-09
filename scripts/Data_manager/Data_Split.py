@@ -39,7 +39,7 @@ class DataSplit:
         
         if isinstance(labels, pd.Series):
             labels = labels.to_numpy()
-        labels = torch.tensor(labels).float().view(-1, 1)
+        labels = torch.tensor(labels).long()
         
     
         # Step 2: first split: train + temp (val+test)

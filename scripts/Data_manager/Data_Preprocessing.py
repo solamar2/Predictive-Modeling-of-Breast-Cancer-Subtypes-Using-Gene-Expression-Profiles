@@ -25,7 +25,7 @@ class Preprocessing:
         - Converts all features to numeric (non-numeric → NaN)
         - Drops rows containing any NaN (missing OR non-numeric)
         - Drops the same rows from both X and y to keep alignment
-        - Converts y to numeric (float) or integer labels
+        - Converts y to integer labels (long) using LabelEncoder if needed
         - fit_labels: if True, fit a new LabelEncoder; else use existing one
 
         """
@@ -60,6 +60,8 @@ class Preprocessing:
                 y_clean = self.le.transform(y_clean)
             else:
                 y_clean = y_clean.astype(float)
+        
+        y_clean = y_clean.astype(np.int64)
         
         return X_clean, y_clean
 
